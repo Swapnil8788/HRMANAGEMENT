@@ -1,6 +1,8 @@
 using HRManagement.Data;
 using HRManagement.DTOs.UserDTOs;
 using HRManagement.Models;
+using HRManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -13,53 +15,65 @@ namespace HRManagement.Controllers
     public class AuthController : ControllerBase
     {
         private readonly HRDbContext _db;
-        public AuthController(HRDbContext db)
+        private readonly JwtService _jwt;
+        public AuthController(HRDbContext db, JwtService jwt)
         {
             _db = db;
+            _jwt = jwt;
         }
 
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginUserDTO userDTO)
         {
             if (string.IsNullOrWhiteSpace(userDTO.Email))
-                return BadRequest(new {Message = "Please enter valid email"});
-            if(string.IsNullOrEmpty(userDTO.Password))
-                return BadRequest(new {Message = "Password cannot be empty"});
-            var User = await _db.Users.FirstOrDefaultAsync(u => u.Email == userDTO.Email);
-            if(User == null)
+                return BadRequest(new { Message = "Please enter valid email" });
+            if (string.IsNullOrEmpty(userDTO.Password))
+                return BadRequest(new { Message = "Password cannot be empty" });
+            var User = await _db.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == userDTO.Email);
+            if (User == null)
             {
-                return BadRequest(new {Message = "User doesnot exist"});
+                return BadRequest(new { Message = "User doesnot exist" });
             }
             var isPasswordMatches = BCrypt.Net.BCrypt.Verify(userDTO.Password, User.PasswordHash);
             if (!isPasswordMatches)
             {
-                return BadRequest(new {Message="Please enter correct Password"});
+                return BadRequest(new { Message = "Please enter correct Password" });
             }
-            return Ok(new {Message = "Login Sucessful"});
-        }  
+            var roles = User.UserRoles.Select(ur => ur.Role.RoleName).ToList();
+            var jwtObj = new JwtDTO
+            {
+                Email = userDTO.Email,
+                Roles = roles
+            };
+            var token = _jwt.GenerateToken(jwtObj);
+            return Ok(new { token = token });
+        }
 
 
         [HttpPost("register")]
         public async Task<ActionResult> Register([FromBody] RegistrationUser userDTO)
         {
             Console.WriteLine("I am here got hit by register route ");
-            if(userDTO == null)
+            if (userDTO == null)
             {
-                return BadRequest(new {Message ="User cannot be empty"});
+                return BadRequest(new { Message = "User cannot be empty" });
             }
             if (string.IsNullOrWhiteSpace(userDTO.Email))
             {
-                return BadRequest(new {Message = "Invalid Email"});
+                return BadRequest(new { Message = "Invalid Email" });
             }
             var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == userDTO.Email);
-            if(existingUser != null)
+            if (existingUser != null)
             {
-                return BadRequest(new { Message="User with Email already exists"});
+                return BadRequest(new { Message = "User with Email already exists" });
             }
             var rolesFromDB = await _db.Roles.Where(r => userDTO.Roles.Contains(r.RoleName)).ToListAsync();
-            if(rolesFromDB.Count != userDTO.Roles.Count)
+            if (rolesFromDB.Count != userDTO.Roles.Count)
             {
-                return BadRequest(new {Message = "Please select frome existing roles"});
+                return BadRequest(new { Message = "Please select frome existing roles" });
             }
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
@@ -73,12 +87,27 @@ namespace HRManagement.Controllers
                 Age = userDTO.Age,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow,
-                UserRoles = rolesFromDB.Select(role => new UserRole{RoleId = role.RoleId}).ToList()
+                UserRoles = rolesFromDB.Select(role => new UserRole { RoleId = role.RoleId }).ToList()
             };
 
             await _db.Users.AddAsync(user);
             await _db.SaveChangesAsync();
             return Ok(new { Message = "Registration Successful, Please Login" });
+        }
+
+
+        [Authorize(Roles = "HR")]
+        [HttpGet("employees")]
+        public string GetEmployees()
+        {
+            return "Employees";
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("hr")]
+        public string GetHRs()
+        {
+            return "HRs";
         }
     }
 }

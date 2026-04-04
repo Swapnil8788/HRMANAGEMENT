@@ -136,3 +136,5 @@
 /home/swapnilchunarkar/FULLSTACK/HRManagement/HRManagement/obj/Debug/net8.0/HRManagement.genruntimeconfig.cache
 /home/swapnilchunarkar/FULLSTACK/HRManagement/HRManagement/obj/Debug/net8.0/ref/HRManagement.dll
 /home/swapnilchunarkar/FULLSTACK/HRManagement/HRManagement/bin/Debug/net8.0/BCrypt.Net-Next.dll
+/home/swapnilchunarkar/FULLSTACK/HRManagement/HRManagement/obj/Debug/net8.0/HRManagement.sourcelink.json
+/home/swapnilchunarkar/FULLSTACK/HRManagement/HRManagement/bin/Debug/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
