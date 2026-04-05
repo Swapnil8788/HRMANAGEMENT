@@ -31,9 +31,13 @@ public class JwtService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"])),
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"])),
             signingCredentials: creds
         );
+        Console.WriteLine("the current date and time");
+        Console.WriteLine(DateTime.UtcNow);
+        Console.WriteLine("the set date and time by jwt");
+        Console.WriteLine(DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"])));
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
