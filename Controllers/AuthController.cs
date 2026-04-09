@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRManagement.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -20,6 +20,19 @@ namespace HRManagement.Controllers
         {
             _db = db;
             _jwt = jwt;
+        }
+
+        [HttpGet("roles")]
+        public async Task<ActionResult> Roles()
+        {
+
+            List<RoleDTO> Roles = await _db.Roles.Select(r => new RoleDTO
+            {
+                Code = r.RoleId,
+                CodeDesc = r.RoleName
+            }).ToListAsync();
+
+            return Ok(Roles);
         }
 
         [HttpPost("login")]
