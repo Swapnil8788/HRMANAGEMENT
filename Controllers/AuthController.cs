@@ -138,9 +138,9 @@ namespace HRManagement.Controllers
 
         [Authorize]
         [HttpPost("refreshtoken")]
-        public async Task<ActionResult> RefreshToken([FromBody] string accessToken, string refreshToken)
+        public async Task<ActionResult> RefreshToken([FromBody] jwtRefreshTokenDTO jwtObj)
         {
-            var hashedIncomingToken = _refreshToken.ComputeSha256Hash(refreshToken);
+            var hashedIncomingToken = _refreshToken.ComputeSha256Hash(jwtObj.RefreshToken);
             var tokenFromDb = await _db.RefreshTokens.FirstOrDefaultAsync(x => x.Token == hashedIncomingToken);
             if (tokenFromDb == null)
             {
@@ -158,23 +158,23 @@ namespace HRManagement.Controllers
 
             var roles = User.FindAll(ClaimTypes.Role)
                             .Select(r => r.Value).ToList();
-            // var jwtObj = new JwtDTO
-            // {
-            //     Email = userDTO.Email,
-            //     Roles = roles
-            // };
+            var jwtObjClaims = new JwtDTO
+            {
+                Email = email,
+                Roles = roles
+            };
             var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
 
             if (string.IsNullOrEmpty(ipAddress))
             {
                 ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             }
-            // var token = _jwt.GenerateToken(jwtObj);
-            // var (refreshToken, rawToken) = _refreshToken.CreateRefreshToken(User.UserId, ipAddress);
-            // await _db.RefreshTokens.AddAsync(refreshToken);
-            // await _db.SaveChangesAsync();
-            // return Ok(new { AccessToken = token, RefreshToken = rawToken });
-            return Ok(new { token = email, roles = roles });
+            var token = _jwt.GenerateToken(jwtObjClaims);
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == jwtObjClaims.Email);
+            var (newRefreshToken, rawToken) = _refreshToken.CreateRefreshToken(user.UserId , ipAddress);
+            await _db.RefreshTokens.AddAsync(newRefreshToken);
+            await _db.SaveChangesAsync();
+            return Ok(new { AccessToken = token, RefreshToken = rawToken });
         }
     }
 }
