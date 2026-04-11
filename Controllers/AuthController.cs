@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using HRManagement.Data;
 using HRManagement.DTOs.UserDTOs;
 using HRManagement.Models;
@@ -16,10 +17,13 @@ namespace HRManagement.Controllers
     {
         private readonly HRDbContext _db;
         private readonly JwtService _jwt;
-        public AuthController(HRDbContext db, JwtService jwt)
+
+        private readonly RefreshTokenGeneratorService _refreshToken;
+        public AuthController(HRDbContext db, JwtService jwt, RefreshTokenGeneratorService refreshToken)
         {
             _db = db;
             _jwt = jwt;
+            _refreshToken = refreshToken;
         }
 
         [HttpGet("roles")]
@@ -61,8 +65,17 @@ namespace HRManagement.Controllers
                 Email = userDTO.Email,
                 Roles = roles
             };
+            var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
             var token = _jwt.GenerateToken(jwtObj);
-            return Ok(new { token = token });
+            var (refreshToken, rawToken) = _refreshToken.CreateRefreshToken(User.UserId, ipAddress);
+            await _db.RefreshTokens.AddAsync(refreshToken);
+            await _db.SaveChangesAsync();
+            return Ok(new { AccessToken = token, RefreshToken = rawToken });
         }
 
 
@@ -120,7 +133,48 @@ namespace HRManagement.Controllers
         [HttpGet("hr")]
         public string GetHRs()
         {
-            return "HRs";
+            return "khkhkh";
+        }
+
+        [Authorize]
+        [HttpPost("refreshtoken")]
+        public async Task<ActionResult> RefreshToken([FromBody] string accessToken, string refreshToken)
+        {
+            var hashedIncomingToken = _refreshToken.ComputeSha256Hash(refreshToken);
+            var tokenFromDb = await _db.RefreshTokens.FirstOrDefaultAsync(x => x.Token == hashedIncomingToken);
+            if (tokenFromDb == null)
+            {
+                return Unauthorized("Invalid refresh token");
+            }
+            if (tokenFromDb.IsRevoked)
+            {
+                return Unauthorized("Token Expired");
+            }
+            if (tokenFromDb.Expires < DateTime.UtcNow)
+            {
+                return Unauthorized("Token Expired");
+            }
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            var roles = User.FindAll(ClaimTypes.Role)
+                            .Select(r => r.Value).ToList();
+            // var jwtObj = new JwtDTO
+            // {
+            //     Email = userDTO.Email,
+            //     Roles = roles
+            // };
+            var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
+            // var token = _jwt.GenerateToken(jwtObj);
+            // var (refreshToken, rawToken) = _refreshToken.CreateRefreshToken(User.UserId, ipAddress);
+            // await _db.RefreshTokens.AddAsync(refreshToken);
+            // await _db.SaveChangesAsync();
+            // return Ok(new { AccessToken = token, RefreshToken = rawToken });
+            return Ok(new { token = email, roles = roles });
         }
     }
 }

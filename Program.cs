@@ -75,6 +75,7 @@ builder.Services.AddAuthentication(option =>
 });
 
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<RefreshTokenGeneratorService>();
 
 builder.Services.AddControllers();
 var app = builder.Build();
