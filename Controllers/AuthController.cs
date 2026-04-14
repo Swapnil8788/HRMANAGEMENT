@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRManagement.Controllers
 {
-    [Route("api/")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -75,7 +75,7 @@ namespace HRManagement.Controllers
             var (refreshToken, rawToken) = _refreshToken.CreateRefreshToken(User.UserId, ipAddress);
             await _db.RefreshTokens.AddAsync(refreshToken);
             await _db.SaveChangesAsync();
-            return Ok(new { AccessToken = token, RefreshToken = rawToken });
+            return Ok(new { AccessToken = token, RefreshToken = rawToken, roles = roles });
         }
 
 
@@ -140,6 +140,7 @@ namespace HRManagement.Controllers
         [HttpPost("refreshtoken")]
         public async Task<ActionResult> RefreshToken([FromBody] jwtRefreshTokenDTO jwtObj)
         {
+            Console.WriteLine("here it is reaching in token");
             var hashedIncomingToken = _refreshToken.ComputeSha256Hash(jwtObj.RefreshToken);
             var tokenFromDb = await _db.RefreshTokens.FirstOrDefaultAsync(x => x.Token == hashedIncomingToken);
             if (tokenFromDb == null)
@@ -172,9 +173,10 @@ namespace HRManagement.Controllers
             var token = _jwt.GenerateToken(jwtObjClaims);
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == jwtObjClaims.Email);
             var (newRefreshToken, rawToken) = _refreshToken.CreateRefreshToken(user.UserId , ipAddress);
+            tokenFromDb.IsRevoked = true;
             await _db.RefreshTokens.AddAsync(newRefreshToken);
             await _db.SaveChangesAsync();
-            return Ok(new { AccessToken = token, RefreshToken = rawToken });
+            return Ok(new { accessToken = token, refreshToken = rawToken });
         }
     }
 }

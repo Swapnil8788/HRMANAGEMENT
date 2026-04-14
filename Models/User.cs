@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using HRManagement.Enums;
 
 namespace HRManagement.Models;
 
@@ -16,4 +17,5 @@ public class User
     public DateTime ModifiedAt{get;set;}
     public ICollection<UserRole> UserRoles{get;set;} = new List<UserRole>();
     public List<RefreshToken> RefreshTokens{get;set;} = new List<RefreshToken>();
+    public UserStatus UserStatus{get;set;} = UserStatus.Pending;
 }
