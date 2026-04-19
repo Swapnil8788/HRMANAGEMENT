@@ -1,5 +1,6 @@
 using System;
 using HRManagement.Models;
+using HRManagement.Models.Orgnisations;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRManagement.Data;
@@ -15,26 +16,7 @@ public class HRDbContext : DbContext
     public DbSet<UserRole> UserRoles { get; set; }
     
     public DbSet<RefreshToken> RefreshTokens{get;set;}
-
-    // protected override void OnModelCreating(ModelBuilder modelBuilder)
-    // {
-    //     // Composite Primary Key
-    //     modelBuilder.Entity<UserRole>()
-    //         .HasKey(ur => new { ur.UserId, ur.RoleId });
-
-    //     // User → UserRole
-    //     modelBuilder.Entity<UserRole>()
-    //         .HasOne(ur => ur.User)
-    //         .WithMany(u => u.UserRoles)
-    //         .HasForeignKey(ur => ur.UserId);
-
-    //     // Role → UserRole
-    //     modelBuilder.Entity<UserRole>()
-    //         .HasOne(ur => ur.Role)
-    //         .WithMany(r => r.UserRoles)
-    //         .HasForeignKey(ur => ur.RoleId);
-    // }
-
+    public DbSet<Organisation> Organisations{get;set;}
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserRole>()
@@ -53,6 +35,12 @@ public class HRDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
+        
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Organisation)
+            .WithMany(o => o.Users)
+            .HasForeignKey(u => u.OrganisationId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
 }

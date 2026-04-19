@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using HRManagement.Enums;
+using HRManagement.Models.Orgnisations;
 
 namespace HRManagement.Models;
 
@@ -18,4 +19,7 @@ public class User
     public ICollection<UserRole> UserRoles{get;set;} = new List<UserRole>();
     public List<RefreshToken> RefreshTokens{get;set;} = new List<RefreshToken>();
     public UserStatus UserStatus{get;set;} = UserStatus.Pending;
+
+    public int? OrganisationId{get;set;}
+    public Organisation? Organisation{get;set;}
 }

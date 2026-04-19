@@ -21,6 +21,5 @@ public class RegistrationUser
     [Required]
     public int Age{get;set;}
     [Required]
-    [MinLength(1)]
     public ICollection<string> Roles{get;set;} = new List<string>();
 }
