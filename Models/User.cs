@@ -17,7 +17,7 @@ public class User
     public DateTime CreatedAt{get;set;}
     public DateTime ModifiedAt{get;set;}
     public ICollection<UserRole> UserRoles{get;set;} = new List<UserRole>();
-    public List<RefreshToken> RefreshTokens{get;set;} = new List<RefreshToken>();
+    // public List<RefreshToken> RefreshTokens{get;set;} = new List<RefreshToken>();
     public UserStatus UserStatus{get;set;} = UserStatus.Pending;
 
     public int? OrganisationId{get;set;}

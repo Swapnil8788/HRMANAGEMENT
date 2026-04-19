@@ -20,7 +20,7 @@ namespace HRManagement.Controllers
         }
 
         [HttpGet]
-        // [Authorize]
+        [Authorize]
         public async Task<ActionResult> GetOrganisations()
         {
             var organisations = await _db.Organisations.ToListAsync();
@@ -30,6 +30,7 @@ namespace HRManagement.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> CreateOrganisation([FromBody] OrganisationDTO organisationDTO)
         {
             if (organisationDTO == null)
@@ -56,6 +57,7 @@ namespace HRManagement.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult> UpdateOrganisation(int id, [FromBody] OrganisationDTO organisationDTO)
         {
             var organisation = await _db.Organisations.FindAsync(id);
@@ -73,6 +75,7 @@ namespace HRManagement.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult> GetOrganisation(int id)
         {
             var organisation = await _db.Organisations.FindAsync(id);
@@ -91,6 +94,7 @@ namespace HRManagement.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult> DeleteOrganisation(int id)
         {
             var organisation = await _db.Organisations.FindAsync(id);

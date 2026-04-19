@@ -3,6 +3,7 @@ using HRManagement.DTOs.UserDTOs;
 using HRManagement.Enums;
 using HRManagement.Migrations;
 using HRManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace HRManagement.Controllers
 {
     [Route("api/users")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly HRDbContext _db;
@@ -63,7 +65,7 @@ namespace HRManagement.Controllers
             {
                 return NotFound(new { Message = "User not found" });
             }
-            if (string.IsNullOrEmpty(userDTO.Password))
+            if (!string.IsNullOrEmpty(userDTO.Password))
             {
                 var hashedPasswrod = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
                 user.PasswordHash = hashedPasswrod;
