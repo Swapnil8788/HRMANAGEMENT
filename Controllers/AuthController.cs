@@ -26,6 +26,12 @@ namespace HRManagement.Controllers
             _refreshToken = refreshToken;
         }
 
+        [HttpGet("healthed")]
+        public string healthed()
+        {
+            return "your api is deployed ";
+        }
+
         [HttpGet("roles")]
         public async Task<ActionResult> Roles()
         {
@@ -85,7 +91,7 @@ namespace HRManagement.Controllers
             var tokenFromDb = await _db.RefreshTokens.FirstOrDefaultAsync(x => x.Token == hashedIncomingToken);
             tokenFromDb.IsRevoked = true;
             await _db.SaveChangesAsync();
-            return Ok(new {Message="User logged out successfully"});
+            return Ok(new { Message = "User logged out successfully" });
         }
 
 
