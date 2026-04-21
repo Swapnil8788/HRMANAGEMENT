@@ -29,7 +29,7 @@ namespace HRManagement.Controllers
         [HttpGet("healthed")]
         public string healthed()
         {
-            return "your api is deployed ";
+            return "your api is deployed with github actions";
         }
 
         [HttpGet("roles")]
