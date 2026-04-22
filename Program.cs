@@ -42,7 +42,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngular",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200")
+            policy.WithOrigins("http://localhost:4200", 
+                               "https://agreeable-moss-01ce5bd00.7.azurestaticapps.net/hrm-dev01-fyf4g6djdzcfejcn.centralindia-01.azurewebsites.net")
             .AllowAnyHeader()
             .AllowAnyMethod();
         });
@@ -109,7 +110,7 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
-app.UseCors("AllowAngular");    
+app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
