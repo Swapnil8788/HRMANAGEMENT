@@ -43,7 +43,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy.WithOrigins("http://localhost:4200", 
-                               "https://agreeable-moss-01ce5bd00.7.azurestaticapps.net/hrm-dev01-fyf4g6djdzcfejcn.centralindia-01.azurewebsites.net")
+                               "https://agreeable-moss-01ce5bd00.7.azurestaticapps.net")
             .AllowAnyHeader()
             .AllowAnyMethod();
         });
